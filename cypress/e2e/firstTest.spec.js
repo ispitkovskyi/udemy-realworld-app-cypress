@@ -3,13 +3,15 @@
 describe('Tests with backend', () => {
 
     beforeEach('login to application', () => {
+        // 3rd parameter - the value to be used as our response for intercepted call
         cy.intercept('GET', 'https://api.realworld.io/api/tags', {fixture: 'tags.json'})
         cy.loginToApplication()
     })
 
     it('verify correct request and response', () => {
 
-        cy.intercept('POST', 'https://api.realworld.io/api/articles/').as('postArticles')
+        cy.intercept('POST', 'https://api.realworld.io/api/articles/')
+            .as('postArticles') //configuration is saved to the postArticle variable
 
         cy.contains('New Article').click()
         cy.get('[formcontrolname="title"]').type('This is the title')
@@ -17,6 +19,7 @@ describe('Tests with backend', () => {
         cy.get('[formcontrolname="body"]').type('This is a body of the article')
         cy.contains('Publish Article').click()
 
+        // Wait for the API call to be intercepted by the created interceptor saved to 'postArticle' variable
         cy.wait('@postArticles').then( xhr => {
             console.log(xhr)
             expect(xhr.response.statusCode).to.equal(200)
@@ -34,6 +37,7 @@ describe('Tests with backend', () => {
     })
 
     it('verify global feed likes count', () => {
+        // A wildcard used at the end of ULR (avoid specifying parameters)
         cy.intercept('GET', 'https://api.realworld.io/api/articles/feed*', {"articles":[],"articlesCount":0})
         cy.intercept('GET', 'https://api.realworld.io/api/articles*', { fixture: 'articles.json'})
 
